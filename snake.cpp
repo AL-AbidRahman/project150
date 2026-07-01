@@ -37,7 +37,7 @@ const Color C_TEXT      = {200, 200, 210, 255};
 const Color C_GOLD      = {255, 200, 50,  255};
 const Color C_OVERLAY   = {0,   0,   0,   200};
 const Color C_EASY      = {80,  220, 100, 255};
-const Color C_MED       = {80,  220, 100, 255};  // green like EASY
+const Color C_MED       = {80,  220, 100, 255};
 const Color C_HARD      = {220, 60,  60,  255};
 
 enum Screen { SCREEN_MENU, SCREEN_GAME, SCREEN_SCORES };
@@ -152,14 +152,11 @@ struct Menu {
     bool hoverPlay=false, hoverScores=false, hoverQuit=false;
 };
 
-// ── Menu drawing ──────────────────────────────────────────────────────────────
 void drawMenuScreen(SDL_Renderer* r, TTF_Font* fBig, TTF_Font* fMed,
                     TTF_Font* fSmall, Menu& menu, Uint32 ticks, SDL_Texture* bgTex){
 
-    // 1. Dark base
     setColor(r,{10,10,10,255}); fillRect(r,0,0,WIN_W,WIN_H);
 
-    // 2. Background image — HIGH alpha so it's fully visible like target
     if(bgTex){
         SDL_SetTextureAlphaMod(bgTex,255);
         SDL_Rect dst{0,0,WIN_W,WIN_H};
@@ -170,35 +167,30 @@ void drawMenuScreen(SDL_Renderer* r, TTF_Font* fBig, TTF_Font* fMed,
         return menu.mouseX>=rx&&menu.mouseX<=rx+rw&&menu.mouseY>=ry&&menu.mouseY<=ry+rh;
     };
 
-    // ── Title ────────────────────────────────────────────────────
     float pulse=0.88f+0.12f*sinf(ticks*0.003f);
     Color titleCol={(Uint8)(50*pulse),(Uint8)(230*pulse),(Uint8)(80*pulse),255};
     drawText(r,fBig,"SNAKE",WIN_W/2,70,titleCol);
     drawText(r,fSmall,"CLASSIC EDITION",WIN_W/2,112,{60,230,100,255});
 
-    // ── SELECT DIFFICULTY label ───────────────────────────────────
     int py=150;
     drawText(r,fSmall,"SELECT DIFFICULTY",WIN_W/2,py,{255,255,255,255});
     py+=32;
 
-    // Diff label colors (target: EASY=green, MEDIUM=green, HARD=red)
+
     Color diffLabel[3]={
-        {80, 230, 100, 255},  // EASY   — green
-        {80, 230, 100, 255},  // MEDIUM — green  (same as EASY in target)
-        {220, 55,  55, 255},  // HARD   — red
+        {80, 230, 100, 255},
+        {80, 230, 100, 255},
+        {220, 55,  55, 255},
     };
-    // Desc colors — cyan blue for all (target)
     Color descCol={30, 180, 255, 255};
 
-    // Box width — wider, nearly full window width like target
-    int bw=WIN_W-160, bx=(WIN_W-bw)/2;
+    int bw=WIN_W-290, bx=(WIN_W-bw)/2;
 
     for(int i=0;i<3;i++){
         bool sel=(menu.selectedDiff==i);
         int bh=62, by=py+i*70;
         bool hov=inRect(bx,by,bw,bh);
 
-        // Fill — dark translucent so bg shows through
         SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_BLEND);
         if(sel){
             SDL_SetRenderDrawColor(r,0,0,0,120);
@@ -210,19 +202,16 @@ void drawMenuScreen(SDL_Renderer* r, TTF_Font* fBig, TTF_Font* fMed,
         fillRect(r,bx,by,bw,bh);
         SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_NONE);
 
-        // Border — white always (like target), thicker when selected
         Color bc = sel ? Color{255,255,255,255} : (hov ? Color{220,220,220,255} : Color{200,200,200,255});
         drawBorder(r,bx,by,bw,bh,sel?2:1,bc);
 
-        // Label + desc
         drawText(r,fMed, DIFF[i].label, WIN_W/2, by+20, diffLabel[i]);
         drawText(r,fSmall,DIFF[i].desc, WIN_W/2, by+44, descCol);
     }
     py += 3*70 + 8;
 
-    // ── PLAY button ──────────────────────────────────────────────
     {
-        int pbw=WIN_W-160, pbx=(WIN_W-pbw)/2, pbh=56, pby=py+8;
+        int pbw=WIN_W-290, pbx=(WIN_W-pbw)/2, pbh=56, pby=py+8;
         menu.hoverPlay=inRect(pbx,pby,pbw,pbh);
         SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_BLEND);
         if(menu.hoverPlay) SDL_SetRenderDrawColor(r,50,180,70,220);
@@ -235,9 +224,8 @@ void drawMenuScreen(SDL_Renderer* r, TTF_Font* fBig, TTF_Font* fMed,
     }
     py+=72;
 
-    // ── HIGH SCORES button ───────────────────────────────────────
     {
-        int sbw=WIN_W-160, sbx=(WIN_W-sbw)/2, sbh=48, sby=py+4;
+        int sbw=WIN_W-290, sbx=(WIN_W-sbw)/2, sbh=48, sby=py+4;
         menu.hoverScores=inRect(sbx,sby,sbw,sbh);
         SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_BLEND);
         if(menu.hoverScores) SDL_SetRenderDrawColor(r,180,80,0,200);
@@ -251,9 +239,8 @@ void drawMenuScreen(SDL_Renderer* r, TTF_Font* fBig, TTF_Font* fMed,
     }
     py+=60;
 
-    // ── QUIT button ──────────────────────────────────────────────
     {
-        int qbw=WIN_W-160, qbx=(WIN_W-qbw)/2, qbh=40, qby=py+2;
+        int qbw=WIN_W-290, qbx=(WIN_W-qbw)/2, qbh=40, qby=py+2;
         menu.hoverQuit=inRect(qbx,qby,qbw,qbh);
         SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_BLEND);
         if(menu.hoverQuit){ SDL_SetRenderDrawColor(r,160,30,30,180); fillRect(r,qbx,qby,qbw,qbh); }
@@ -264,12 +251,10 @@ void drawMenuScreen(SDL_Renderer* r, TTF_Font* fBig, TTF_Font* fMed,
                  menu.hoverQuit?Color{255,100,100,255}:Color{255,80,200,255});
     }
 
-    // ── Bottom hint ──────────────────────────────────────────────
     drawText(r,fSmall,"UP/DOWN to select difficulty   ENTER to play",
              WIN_W/2,WIN_H-18,{255,255,255,255});
 }
 
-// ── Scores screen ─────────────────────────────────────────────────────────────
 void drawScoresScreen(SDL_Renderer* r,TTF_Font* fBig,TTF_Font* fMed,TTF_Font* fSmall,Uint32 ticks){
     setColor(r,C_BG); fillRect(r,0,0,WIN_W,WIN_H);
     drawText(r,fBig,"HIGH SCORES",WIN_W/2,50,C_GOLD);
@@ -293,7 +278,6 @@ void drawScoresScreen(SDL_Renderer* r,TTF_Font* fBig,TTF_Font* fMed,TTF_Font* fS
     }
 }
 
-// ── HUD ───────────────────────────────────────────────────────────────────────
 void drawHUD(SDL_Renderer* r,TTF_Font* fBig,TTF_Font* fSmall,const Game& g){
     setColor(r,C_HUD_BG); fillRect(r,0,0,WIN_W,HUD_H);
     setColor(r,{40,40,50,255}); fillRect(r,0,HUD_H-1,WIN_W,1);
