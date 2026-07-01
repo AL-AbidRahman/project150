@@ -22,7 +22,7 @@ const std::string SAVE_FILE = "highscores.dat";
 struct DiffConfig { int baseSpeed; int speedInc; const char* label; const char* desc; };
 const DiffConfig DIFF[3] = {
     {200, 2,  "EASY",   "Slow & relaxed"},
-    {200, 2,  "MEDIUM", "Classic speed" },
+    {140, 3,  "MEDIUM", "Classic speed" },
     {80,  5,  "HARD",   "Blink and die" }
 };
 
@@ -256,49 +256,45 @@ void drawMenuScreen(SDL_Renderer* r, TTF_Font* fBig, TTF_Font* fMed,
 
     // ── Difficulty panel ──────────────────────────────────────────
     int py=168;
-    drawText(r,fSmall,"SELECT DIFFICULTY",WIN_W/2,py,{255,255,255,255}); py+=30;
+    drawText(r,fSmall,"SELECT DIFFICULTY",WIN_W/2,py,{255,230,0,255});
+    py+=30;
 
-    // Color diffCols[3]={C_EASY,C_MED,C_HARD};
+    Color diffCols[3]={C_EASY,C_MED,C_HARD};
     // Vivid unselected colors — bright enough to read on any bg without dark panel
-    Color diffCols[3] = {C_EASY, C_MED, C_HARD}; // Keep your chosen selection colors here
+    Color diffUnsel[3]={
+        { 50,255, 120,255},  // easy   — vivid green
+        { 30,180,255,255},   // medium — ocean blue
+        {255,  60, 60,255},  // hard   — vivid red
+    };
+    for(int i=0;i<3;i++){
+        bool sel=(menu.selectedDiff==i);
+        int bx=WIN_W/2-120, bw=240, bh=52, by=py+i*62;
+        bool hov=inRect(bx,by,bw,bh);
 
-// This controls the look when the buttons are NOT selected or hovered
-Color diffUnsel[3] = {
-    {50, 255, 120, 255},   // EASY 
-    {50, 255, 120, 255},   // MEDIUM -> Back to its classic golden text color when unselected
-    {255, 60, 60, 255},    // HARD
-};
+        // Box fill — semi-transparent colored bg so it stands out on photo
+        SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_BLEND);
+        if(sel){
+            Color dc=diffCols[i];
+            SDL_SetRenderDrawColor(r,dc.r,dc.g,dc.b,100);
+        } else if(hov){
+            SDL_SetRenderDrawColor(r,255,255,255,40);
+        } else {
+            SDL_SetRenderDrawColor(r,0,0,0,80);
+        }
+        fillRect(r,bx,by,bw,bh);
+        SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_NONE);
 
-    for(int i = 0; i < 3; i++) {
-    bool sel = (menu.selectedDiff == i);
-    int bx = WIN_W / 2 - 120, bw = 240, bh = 52, by = py + i * 62;
-    bool hov = inRect(bx, by, bw, bh);
+        // Border
+        Color bc= sel ? diffCols[i] : (hov ? diffUnsel[i] : Color{180,180,200,255});
+        drawBorder(r,bx,by,bw,bh,sel?2:1,bc);
 
-    // ── Box fill ──
-    SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
-    if(sel) {
-        Color dc = diffCols[i];
-        SDL_SetRenderDrawColor(r, dc.r, dc.g, dc.b, 100); // Transparent color overlay if selected
-    } else if(hov) {
-        SDL_SetRenderDrawColor(r, 255, 255, 255, 40);    // Standard hover glow
-    } else {
-        SDL_SetRenderDrawColor(r, 0, 0, 0, 80);          // Exact blackish background for all unselected buttons
+        // Label — always vivid, no dark panel needed
+        Color lc = sel ? diffCols[i] : diffUnsel[i];
+        drawText(r,fMed,DIFF[i].label,WIN_W/2,by+16,lc);
+        // Desc — vivid cyan so it pops on any background
+        Color dc2 = sel ? Color{100,255,230,255} : Color{0,230,255,255};
+        drawText(r,fSmall,DIFF[i].desc,WIN_W/2,by+36,dc2);
     }
-    fillRect(r, bx, by, bw, bh);
-    SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_NONE);
-
-    // ── Border (This is what fixes your pink/purple border line) ──
-    // If selected -> use difficulty color. If hovered -> use unselected label color. Otherwise -> clean gray border.
-    Color bc = sel ? diffCols[i] : (hov ? diffUnsel[i] : Color{180, 180, 200, 255});
-    drawBorder(r, bx, by, bw, bh, sel ? 2 : 1, bc);
-
-    // ── Label & Description text ──
-    Color lc = sel ? diffCols[i] : diffUnsel[i];
-    drawText(r, fMed, DIFF[i].label, WIN_W / 2, by + 16, lc);
-    
-    Color dc2 = Color{0, 230, 255, 255};        
-    drawText(r, fSmall, DIFF[i].desc, WIN_W / 2, by + 36, dc2);
-}
     py += 3*62 + 10;
 
     // ── PLAY button ──────────────────────────────────────────────
@@ -361,8 +357,9 @@ Color diffUnsel[3] = {
 
     // Controls hint — bright yellow
     drawText(r,fSmall,"UP/DOWN to select difficulty   ENTER to play",
-         WIN_W/2,WIN_H-18,{255,255,255,255});
-    }
+             WIN_W/2,WIN_H-18,{255,230,0,255});
+}
+
 // ─── Draw: scores screen ──────────────────────────────────────────────────────
 void drawScoresScreen(SDL_Renderer* r, TTF_Font* fBig, TTF_Font* fMed,
                       TTF_Font* fSmall, Uint32 ticks){
